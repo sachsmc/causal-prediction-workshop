@@ -1,4 +1,4 @@
-synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st){
+synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st, keep = NULL){
     #
     # empty model
     #
@@ -73,6 +73,7 @@ synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st){
     d[,time.event.0 := NULL]
     d[,time.event.1 := NULL]
     d[,time.event.2 := NULL]
+    d[, cvd_5year := uncensored_time_cvd < 5 & uncensored_status_cvd == 1]
     if (length(keep)>0) d[,keep,with=FALSE]
     else d[]
 }

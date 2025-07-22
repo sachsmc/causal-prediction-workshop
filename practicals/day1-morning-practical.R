@@ -1,6 +1,6 @@
 library(lava)
 library(Publish)
-source("synthesize-td1.R")
+source("functions/synthesize-td1.R")
 library(survival)
 library(riskRegression)
 
