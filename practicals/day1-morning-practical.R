@@ -1,5 +1,4 @@
 library(lava)
-library(Publish)
 source("functions/synthesize-td1.R")
 library(survival)
 library(riskRegression)
@@ -11,6 +10,9 @@ beta_st <- -0.3
 
 set.seed(70825)
 data <- synthesize_td1(1000, beta_cs, beta_ct, beta_ls, beta_st)
+dag <- attr(data, "causal.model")
+plot(dag)
+
 
 fittrue <- CSC(Hist(time_cvd, status_cvd) ~ hidden_Comorbidity + Statin + sex + age+diabetes_duration+value_SBP+value_LDL+value_HBA1C+value_Albuminuria+ I(log2(eGFR)) * I(age > 40) +value_Smoking+value_Motion, data = data)
 
@@ -54,4 +56,12 @@ pfitomit <- cumincglm(Surv(time_cvd, factor(status_cvd)) ~ Statin + sex + age+di
 
 plogis(predict(pfittrue, newdata = datanew))
 plogis(predict(pfitomit, newdata = datanew))
+
+
+library(causaleffect)
+
+causal.effect(y = "time.event.1", x = "Statin", 
+              z = c("sex","age", "diabetes_duration","value_SBP",
+                    "value_LDL","value_HBA1C","value_Albuminuria", 
+                    "eGFR", "value_Smoking","value_Motion"), G = dag)
 

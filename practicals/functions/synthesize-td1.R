@@ -64,7 +64,10 @@ synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st, keep = NULL){
     # construction of eGFR 
     lava::transform(sim_model,eGFR~log2_eGFR_old+log2_eGFR_young+age) <- function(x){as.numeric(x[["age"]]<40)*100*2^{x[["log2_eGFR_young"]]}+as.numeric(x[["age"]]>40)*100*2^{x[["log2_eGFR_old"]]}}
     # simulate from model
+    
+    cmod <- igraph.lvm(sim_model)
     d <- lava::sim(sim_model,n)
+    attr(d, "causal.model") <- cmod
     data.table::setDT(d)
     d[,log2_eGFR_old := NULL]
     d[,log2_eGFR_young := NULL]
@@ -74,6 +77,6 @@ synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st, keep = NULL){
     d[,time.event.1 := NULL]
     d[,time.event.2 := NULL]
     d[, cvd_5year := uncensored_time_cvd < 5 & uncensored_status_cvd == 1]
-    if (length(keep)>0) d[,keep,with=FALSE]
-    else d[]
+    if (length(keep)>0) d <- d[,keep,with=FALSE]
+    d
 }
