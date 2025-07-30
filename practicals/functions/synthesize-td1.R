@@ -1,4 +1,5 @@
-synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st, keep = NULL){
+synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st, 
+                           beta_sm, beta_mt, keep = NULL){
     #
     # empty model
     #
@@ -11,6 +12,10 @@ synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st, keep = NULL){
     # binary treatment 
     #
     lava::distribution(sim_model, ~ Statin) <- lava::binomial.lvm()
+    # mediator
+    
+    lava::distribution(sim_model, ~ value_LDL_followup) <- 
+        lava::normal.lvm(mean = 0, sd = .8)
     #
     # covariates
     #
@@ -51,6 +56,8 @@ synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st, keep = NULL){
     lava::regression(sim_model,diabetes_duration~age+sex) <- c(0.461453096059993,1.8834280372868)
     lava::regression(sim_model,value_SBP~diabetes_duration+age+sex) <- c(0.173711840258398,0.408090766933998,-5.26413576607228)
     lava::regression(sim_model,value_LDL~value_SBP+diabetes_duration+age+sex) <- c(0.0017997232707461,-0.00215485947423231,-0.00194439878409113,-0.0247941295129788)
+    
+    lava::regression(sim_model, value_LDL_followup ~ value_LDL + Statin) <- c(1, beta_sm)
     lava::regression(sim_model,value_HBA1C~value_LDL+value_SBP+diabetes_duration+age+sex) <- c(2.41425803932559,-0.0366520181671025,0.105793793763282,-0.113517351234731,1.14432850532257)
     lava::regression(sim_model,log2_eGFR_young~value_AlbuminuriaMicro+value_AlbuminuriaMacro+value_HBA1C+value_LDL+value_SBP+diabetes_duration+age+sex) <- c(-0.0378605757282762,0.369860071363398,-0.000381556996934381,0.0759866855173213,-0.000921667597434942,0.0109443806788427,0.173985375155216,-0.05148192662188)
     # Fixme: it is odd to let the log2_eGFR_old depend on log2_eGFR_young 
@@ -59,7 +66,7 @@ synthesize_td1 <- function(n, beta_cs, beta_ct, beta_ls, beta_st, keep = NULL){
     lava::regression(sim_model,value_Motion~value_Smoking+log2_eGFR_old+log2_eGFR_young+value_AlbuminuriaMicro+value_AlbuminuriaMacro+value_HBA1C+value_LDL+value_SBP+diabetes_duration+age+sex) <- c(-0.31142087785739,-0.134144429182559,-0.0862952685994639,-0.121332306983678,-0.334529806176446,-0.0100110418345244,-0.138145721076664,0.00690508520692886,-0.0080292376964733,-0.00517733988644732,0.070748099701443)
     ## covariate effects on time to event outcome
     lava::regression(sim_model,time.event.0~value_Motion+value_Smoking+log2_eGFR_old+log2_eGFR_young+value_AlbuminuriaMicro+value_AlbuminuriaMacro+value_HBA1C+value_LDL+value_SBP+diabetes_duration+age+sex) <- c(-0.0389267779620385,-0.106325304898881,-0.137101392329058,-0.118521604228187,-0.0330093143101979,0.0763711547050245,-0.00617576911315076,0.0509424048213361,-0.00757123095797519,-0.0125850223581346,-0.0130146695831196,-0.029633759327063)
-    lava::regression(sim_model,time.event.1~hidden_Comorbidity + Statin + value_Motion+value_Smoking+log2_eGFR_old+log2_eGFR_young+value_AlbuminuriaMicro+value_AlbuminuriaMacro+value_HBA1C+value_LDL+value_SBP+diabetes_duration+age+sex) <- c(beta_ct,beta_st,-0.176043482185139,0.311354666798778,0.442184803104845,0.480004039250349,0.458766977417934,0.760940706393913,0.0143694959616522,0.0701435790868005,0.00607734573133048,0.00980515944727106,0.0412496430494417,-0.224377188536924)
+    lava::regression(sim_model,time.event.1~hidden_Comorbidity + Statin + value_LDL_followup + value_Motion+value_Smoking+log2_eGFR_old+log2_eGFR_young+value_AlbuminuriaMicro+value_AlbuminuriaMacro+value_HBA1C+value_LDL+value_SBP+diabetes_duration+age+sex) <- c(beta_ct,beta_st,beta_mt,-0.176043482185139,0.311354666798778,0.442184803104845,0.480004039250349,0.458766977417934,0.760940706393913,0.0143694959616522,0.0701435790868005,0.00607734573133048,0.00980515944727106,0.0412496430494417,-0.224377188536924)
     lava::regression(sim_model,time.event.2~value_Motion+value_Smoking+log2_eGFR_old+log2_eGFR_young+value_AlbuminuriaMicro+value_AlbuminuriaMacro+value_HBA1C+value_LDL+value_SBP+diabetes_duration+age+sex) <- c(-0.410553409305998,0.833815403131808,0.3289175620287,0.313118375461698,0.225523885897843,0.604004891420425,0.0102472549995989,0.0287051547482761,0.00156423178426314,0.00678536173681053,0.0803874049498844,-0.276186036048047)
     # construction of eGFR 
     lava::transform(sim_model,eGFR~log2_eGFR_old+log2_eGFR_young+age) <- function(x){as.numeric(x[["age"]]<40)*100*2^{x[["log2_eGFR_young"]]}+as.numeric(x[["age"]]>40)*100*2^{x[["log2_eGFR_old"]]}}
