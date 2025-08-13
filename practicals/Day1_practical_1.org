@@ -1,0 +1,37 @@
+#+TITLE: Practicals Day 1 
+#+AUTHOR: PhD course: Causal prediction for medical decision making
+#+DATE: 
+#+setupfile:~/emacs-genome/snps/org-templates/setup-demografi.org
+#+superman-org-export-target: pdf
+#+OPTIONS: :rmd_yaml:nil
+
+* Exercise 1
+
+Consider the CVD risk prediction tool for type 1 diabetes (Steno
+Diabetes Center Copenhagen): https://steno.shinyapps.io/T1RiskEngine/
+\vspace{1em}
+
+\noindent Answer the following questions:
+
+1. who is eligible to use this calculator?
+2. at what occasion can people use this calculator (i.e., what is time zero)?
+3. how many predictor variables are used to predict the 5-year risk of CVD?
+4. in what direction does the 5-year risk change when you change any of the predictor variables keeping the other predictor variables at a fixed value?
+
+\noindent Think about and discuss the following with your nearest neighbors:
+
+1. [@5] which of the risk factors change over time?
+2. how old (relative to time zero) are the measurements of these risk factors allowed to be?
+4. which of the risk factors are modifiable?
+5. correspondingly what would be possible interventions?
+
+* Exercise 2
+
+We have synthesized data alike the training data behind the Steno type
+1 risk engine. The data are not real and obtained by computer
+simulation.
+
+\noindent Perform the following steps in R:
+
+1. read the data
+2. 
