@@ -1,11 +1,26 @@
 ---
-title: PhD course: Causal prediction for medical decision making. Practicals day 1 afternoon
-output: word_document
+title: Causal prediction for medical decision making. Practicals day 1 afternoon
+format: 
+  html:
+    code-fold: false
+    code-tools: true
+editor_options: 
+  chunk_output_type: console
+execute:
+  eval: false
+  echo: true
 ---
-```
 
 
-# Exercise 2
+# Learning objectives
+
+
+1. Read about the data, read it into R, and examine the data and benchmark models
+2. Make your own prediction model using the training dataset
+3. Provide an estimate of some metric to quantify how well your model performs using test data or cross validation
+4. Predict the probability of the outcome in the validation set and send the predictions to the teachers. 
+
+# Data description
 
 We have synthesized data alike the training data behind the Steno type
 1 risk engine. The data are not real data but obtained by computer
@@ -40,9 +55,9 @@ occurrence means either death without CVD or alive without CVD.
     -   `statin`: indicator of statin use between times 1 and 2 (0 = not on statins, 1 = on statins)
 
 
-## Perform the following steps in R:
+# Exercises
 
-0.  Load R-package `riskRegression`
+0.  Load the R package `riskRegression`
 
 ```{r   }
 library(riskRegression) 
@@ -51,8 +66,8 @@ library(riskRegression)
 1.  Read the train and the test data into R
 
 ```{r   }
-train <- fread("https://raw.githubusercontent.com/sachsmc/causal-prediction-workshop/refs/heads/master/practicals/data/type1-diabetes-train.csv")
-test <- fread("https://raw.githubusercontent.com/sachsmc/causal-prediction-workshop/refs/heads/master/practicals/data/type1-diabetes-test.csv") 
+train <- readRDS(url("https://github.com/sachsmc/causal-prediction-workshop/raw/refs/heads/master/practicals/type1-diabetes-train.rds"))
+test <- readRDS(url("https://github.com/sachsmc/causal-prediction-workshop/raw/refs/heads/master/practicals/type1-diabetes-test.rds"))
 ```
 
 2.  What is the prevalence of CVD 5 years after time zero?
@@ -141,4 +156,23 @@ plotRisk(z)
 plotROC(z)
 plotCalibration(z) 
 ```
+
+
+9. Once you have decided on your new risk prediction model, load the validation dataset and produce predicted probabilities of cvd_5year. Insert them into a new variable in the validation dataset, save the result 
+
+```{r}
+valid <- readRDS(url("https://github.com/sachsmc/causal-prediction-workshop/raw/refs/heads/master/practicals/data/type1-diabetes-valid.rds"))
+
+valid$riskest <- predict(rf, data = valid)$predictions[, 2]
+
+saveRDS(valid, file = stop("replace 'stop(\"replace ...\")' with a unique team filename ending in .rds"))
+```
+
+
+10. Send an email to michael.sachs@sund.ku.dk with the following information: 
+    
+    - The file you just saved as an attachment. It must contain at least the pid and riskest columns. 
+    - The name of the file that you attached. 
+    - Your team name. 
+    - An estimate of the AUC of your model from either cross-validation or the test dataset. 
 

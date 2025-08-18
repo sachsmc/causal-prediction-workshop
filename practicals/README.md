@@ -1,11 +1,3 @@
-Objectives for the practicals Day 1
-
-1. Read about the data, read it into R, and examine the data and benchmark models
-2. Make your own prediction model using the training dataset
-3. Provide an estimate of some metric to quantify how well your model performs
-4. Predict the probability of the outcome in the validation set
-
-
 Data description
 ----------------
 
