@@ -1,0 +1,394 @@
+#+TITLE: Obstacles and pitfalls
+#+Author:
+#+Latex_header:\institute{}
+#+Latex_header:\subtitle{for the prediction modeling strategy in general and the estimation of prediction performance in particular}
+#+DATE: 
+#+setupfile:~/emacs-genome/snps/org-templates/setup-beamer.org
+
+* Modeling
+
+*** Outline
+
+Advanced statistical topics arise routinely in the prediction
+modeling process and require special attention.
+\vfill
+Many issues
+have no clear solutions but they are still important to
+recognize.
+\vfill
+However, even unsolved, these issues are important to point
+out when discussing the limitations of a study, and potentially could
+motivate the target of a sensitivity analysis.
+\vfill
+
+Cross-validation, Censored outcome, Missing predictor values
+
+
+*** bla
+:PROPERTIES:
+:BEAMER_env: ignoreheading
+:END:
+\setbeamercolor{background canvas}{bg=black}
+
+*** 
+
+\huge \color{white}
+Cross-validation
+
+*** bla
+:PROPERTIES:
+:BEAMER_env: ignoreheading
+:END:
+\setbeamercolor{background canvas}{bg=white}
+
+*** Data splitting
+
+Internal cross-validation can be used to tune model parameters and to
+assess and compare the predictive performance of a list of candidate
+models.
+
+\vfill The term ``internal'' can either refer to the fact that the
+``validation'' study is performed by the same team who made the model,
+or it can refer to the fact that the ``validation'' study splits a
+purpose data into training and validation sets \vfill
+
+We generally *discourage* the use of a *single split* of data into one set
+for training and one for validation.
+
+
+*** Data splitting
+
+  [[~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-7.1.pdf]]
+
+*** Data splitting
+
+  [[~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-7.3.pdf]]
+
+*** Learning curve
+
+\vspace{-3em}
+
+  [[~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-7-learning-curve.pdf]]
+
+*** Example: single split results depend on seed
+
+#+name: table1
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output raw  :exports none  :session *R* :cache no  :eval always
+library(riskRegression)
+train <- readRDS("./practicals/data/type1-diabetes-train.rds")
+conventional_model <- glm(cvd_5year~sex_male + age + diabetes_duration + smoking + motion + HBA1C_post_trt + urine_albumin_post_trt + LDL_post_trt + SBP_post_trt + eGFR_post_trt,
+                          data = train, family = "binomial")
+experimental_model <- glm(cvd_5year~sex_male *SBP_post_trt + age + I(age>40) * eGFR_post_trt + diabetes_duration + smoking + motion,
+                          data = train, family = "binomial")
+#+END_SRC
+
+#+ATTR_LATEX: :options otherkeywords={seed,train,method,B,M}, deletekeywords={model,family,se,null,data,formula}
+#+BEGIN_SRC R  :results output example  :exports both  :session *R* :cache yes  
+x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
+           data = train,
+           formula = cvd_5year~1,
+           split.method = "bootcv",
+           progress.bar = NULL, verbose = FALSE,
+           null.model = FALSE, se = FALSE,
+           seed = 17,
+           B = 1,
+           M = .632*NROW(train))
+summary(x,what = "score")
+#+END_SRC
+
+#+RESULTS[(2025-08-25 16:14:36) 31e661f2fdfa7d2a8f5bd02ebc587c770d51fbff]:
+: $score
+: Key: <Model>
+:                 Model AUC (%) Brier (%)
+:                <fctr>  <char>    <char>
+: 1: Conventional model    91.6       5.7
+: 2: Experimental model    90.3       5.9
+
+*** Example: single split results depend on seed
+
+
+#+ATTR_LATEX: :options otherkeywords={seed,train,method,B,M}, deletekeywords={model,family,se,null,data,formula}
+#+BEGIN_SRC R  :results output example  :exports both  :session *R* :cache yes  
+x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
+           data = train,
+           formula = cvd_5year~1,
+           progress.bar = NULL, verbose = FALSE,
+           null.model = FALSE, se = FALSE,
+           split.method = "bootcv",
+           seed = 4,
+           B = 1,
+           M = .632*NROW(train))
+summary(x,what = "score")
+#+END_SRC
+
+*** Repeated cross-validation helps (but changes the target!)
+:PROPERTIES:
+:BEAMER_opt: shrink=25
+:END:
+
+  [[~/research/Methods/PredictionModelsMonograph/figure-7.88-colour.jpg]]
+
+*** Repeated cross-validation helps (but changes the target!)
+
+#+ATTR_LATEX: :options otherkeywords={seed,train,method,B,M}, deletekeywords={model,family,se,null,data,formula}
+#+BEGIN_SRC R  :results output example  :exports both  :session *R* :cache yes  
+x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
+           data = train,
+           formula = cvd_5year~1,
+           progress.bar = NULL, verbose = FALSE,
+           null.model = FALSE, se = FALSE,
+           split.method = "bootcv",
+           seed = 17,
+           B = 100,
+           M = .632*NROW(train))
+summary(x,what = "score",digits = 2)
+#+END_SRC
+
+#+RESULTS[(2025-08-25 16:23:51) d872122b11f3a813227abade1ea2e8751a2b7463]:
+: $score
+: Key: <Model>
+:                 Model AUC (%) Brier (%)
+:                <fctr>  <char>    <char>
+: 1: Conventional model   90.95      4.98
+: 2: Experimental model   90.62      5.11
+
+*** Repeated cross-validation helps (but changes the target!)
+
+#+ATTR_LATEX: :options otherkeywords={seed,train,method,B,M}, deletekeywords={model,family,se,null,data,formula}
+#+BEGIN_SRC R  :results output example  :exports both  :session *R* :cache yes  
+x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
+           data = train,
+           formula = cvd_5year~1,
+           progress.bar = NULL, verbose = FALSE,
+           null.model = FALSE, se = FALSE,
+           split.method = "bootcv",
+           seed = 4,
+           B = 100,
+           M = .632*NROW(train))
+summary(x,what = "score",digits = 2)
+#+END_SRC
+
+#+RESULTS[(2025-08-25 16:23:57) ac464cf3aa29a09713fc7c1591ac9b36cc741edb]:
+: $score
+: Key: <Model>
+:                 Model AUC (%) Brier (%)
+:                <fctr>  <char>    <char>
+: 1: Conventional model   90.88      4.98
+: 2: Experimental model   90.60      5.11
+
+*** bla
+:PROPERTIES:
+:BEAMER_env: ignoreheading
+:END:
+\setbeamercolor{background canvas}{bg=black}
+
+*** 
+
+\huge \color{white}
+Censored time to event data
+
+*** bla
+:PROPERTIES:
+:BEAMER_env: ignoreheading
+:END:
+\setbeamercolor{background canvas}{bg=white}
+
+*** Censored data
+
+A common behavior is that patients with short follow-up are excluded
+from the dataset. This is almost never the right thing to do, as
+intuitive as it may seem. Excluding them results in bias.
+\vfill
+
+Outcome at the prediction time horizon is unknown (censored) for
+subjects who were not followed until the prediction time horizon and
+were free of any event by the end of their individual follow-up
+period.  \vfill
+
+Subjects who die for other reasons before the time horizon are not censored!
+
+\vfill
+Specific estimation techniques are needed to take care of bias due to
+censored data.
+
+*** 
+:PROPERTIES:
+:BEAMER_opt: shrink=25
+:END:
+
+  [[~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-2-time2event-data.pdf]]
+
+At the 5-year prediction time horizon, only patient 5 is censored. At
+the 10-year prediction time horizon, patients 5 and 6 are censored.
+
+*** Inverse probability of censoring weighting
+
+To estimate the average Brier score we calculate a weighted average
+for only those subjects for who the event status
+at the prediction time horizon is known (groups /event/ and
+/event-free/).
+
+\vfill The weight of a subject is higher the more (similar) subjects
+were lost to follow-up (/censored/) earlier in time.
+
+\vfill This is to account for the fact that those in the /censored/
+group could possibly have experienced the event by the prediction time
+horizon, just this is not observed.
+
+\vfill
+Subjects in the /censored/ group are not directly used in
+the weighted average. However, they enter indirectly through the
+weights assigned to other subjects.  
+
+*** Choice of the prediction time horizon
+
+The prediction time horizon should be chosen such that it is of
+subject matter interest to predict the probability that the event
+occurs in the time period between the time origin and the prediction
+time horizon.
+\vfill
+
+The shorter the prediction time horizon the fewer subjects are
+censored!
+\vfill
+
+It is sometimes useful to study multiple
+prediction time horizons, but this should be motivated by the
+application at hand (beware of cherry-picking).
+
+*** Example code (does not work with course data)
+
+#+ATTR_LATEX: :options otherkeywords={formula,times,event,Hist}, deletekeywords={model,data,NROW,split,null}
+#+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
+x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
+           data = train,
+           formula = Hist(time,event)~age+sex+...,
+           times = 1:10,
+           split.method = "cv10",
+           seed = 4,
+           B = 100,
+           M = .632*NROW(train))
+#+END_SRC
+
+*** bla
+:PROPERTIES:
+:BEAMER_env: ignoreheading
+:END:
+\setbeamercolor{background canvas}{bg=black}
+
+*** 
+
+\huge \color{white}
+Missing predictor values
+
+*** bla
+:PROPERTIES:
+:BEAMER_env: ignoreheading
+:END:
+\setbeamercolor{background canvas}{bg=white}
+
+*** Missing predictor values
+
+When the target of the analysis is an association parameter such as an
+odds ratio or a hazard ratio, then /multiple imputation/ or /inverse
+probability weighting/ may increase power compared to a /complete case
+analysis/.
+\vfill
+However, it is not so simple that multiple imputation has always less bias 
+than a complete case analysis.
+\vfill
+When the aim is to build and ``validate'' a risk prediction model, we need to
+deal with missing values in two conceptually different places: 
+
+- missing values in the learning dataset
+- missing values in data of a new patient who is asking for a predicted risk 
+
+*** Reason for missing predictor values 
+
+We need to understand *why* the values are missing and explore the reasons.
+
+#+ATTR_LATEX: :environment tabular :align m{3cm}m{8cm}
+|--------------------------------+-------------------------------------------------------------------------------------------------------|
+| /Missing completely at random/ | The probability of a missing value is not related to either outcome or predictor variables.           |
+|--------------------------------+-------------------------------------------------------------------------------------------------------|
+| /Missing at random/            | The probability of a missing value is predictable by the other predictor variables *and outcome*.     |
+|--------------------------------+-------------------------------------------------------------------------------------------------------|
+| /Missing not at random/        | The probability of a missing value depends on the missing value and/or on other unobserved variables. |
+|--------------------------------+-------------------------------------------------------------------------------------------------------|
+
+An inconvenient truth to realize is that the type of missingness can
+generally not be inferred from the data. 
+
+
+*** Learning phase (Making of a prediction model)
+
+Missing values in the predictor variables affect the choice of
+predictor variables: having few predictor variables with a high percentage of
+missingness can be equally bad as having many predictor variables with few missing values in different subjects.
+\vfill
+
+Any modelling algorithm (logistic regression, random forest, etc.) may
+use missingness of a variable as a predictor and also use imputation
+of missing values as part of the algorithm!
+
+\vfill
+
+Imputation means to replace a missing value with a likely value.  For
+example, to impute a value for BMI we could specify a linear
+regression model which relates BMI to the other predictor variables,
+other auxiliary variables, and the outcome.
+
+*** Imputation algorithms should also condition on outcome
+
+Thinking about how missingness can possibly depend on an outcome
+variable is generally cumbersome, and it does not get any easier
+when the outcome is a right-censored time-to-event variable.
+\vfill
+
+If the missingness of a predictor variable "happens" at baseline, then
+there cannot be a direct causal effect of the outcome variable on the
+missingness. 
+\vfill
+
+Hence, if the missingness depends on a time-to-event
+variable conditional on the observed predictor variables, this must
+mean that there exists an unobserved variable, such as disease burdon,
+which mediates the relationship.
+
+
+*** 
+:PROPERTIES:
+:BEAMER_opt: shrink=25
+:END:
+
+#+ATTR_LATEX: :width 0.7\textwidth
+#+CAPTION: Suppose the substantive model is a Cox regression model which shows that the 5-year survival probability increases with increasing BMI.
+#+CAPTION: Without conditioning on the outcome, we simply impute missing BMI values for every one from a normal distribution with mean given by the mean BMI in the complete cases.
+#+CAPTION: When the 5-year survival probability is an increasing function of BMI as in the figure this imputed value (the black dot on the line)
+#+CAPTION: is systematically too large for subjects with BMI below 25 and systematically
+#+CAPTION: too low for subjects with BMI above 25.
+  [[~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-7.35.pdf]]
+
+
+*** Missing values in the validation data
+
+We distinguish the following two tasks.
+\vfill
+The first task is
+to have the estimator of prediction performance deal with missing values in the
+validation dataset.
+
+\vfill
+
+The second task is to enrich the model such that
+the input values of some of the predictor variables become optional
+for the user of the model.
+\vfill
+That is, if the user of the model cannot provide the value of one or several predictors, ideally, then the
+model should still be able to provide a predicted risk. 
+\vfill
+
+Obviously, all this makes most sense when the missingness in the
+validation dataset resembles the expected missingness in the future
+users of the model.
