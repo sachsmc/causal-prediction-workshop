@@ -1,0 +1,151 @@
+#+TITLE: Practicals Day 1 Afternoon Session
+#+AUTHOR: PhD course: Causal prediction for medical decision making
+#+DATE: 
+#+setupfile:~/emacs-genome/snps/org-templates/setup-demografi.org
+#+superman-org-export-target: practical
+#+OPTIONS: :rmd_yaml:nil
+
+#+begin_export html
+---
+title: PhD course: Causal prediction for medical decision making. Practicals day 1 afternoon
+output: word_document
+---
+```
+#+end_export
+
+* Exercise 2
+
+We have synthesized data alike the training data behind the Steno type
+1 risk engine. The data are not real data but obtained by computer
+simulation for the sole purpose of illustrating the methods discussed
+during the workshop. Since we have simulated the data we have removed
+the obstacles from censoring and provide a binary outcome variable
+which indicates if CVD occured before the 5 years horizon where no
+occurrence means either death without CVD or alive without CVD.
+
+- Study population ::  Adults with type 1 diabetes. It is recommended for patients to come
+                       for regular follow-up visits every 4 months. These data represent
+                       information available from the past year at the time that the
+                       predictions are to be made (time 0), which includes some measurements
+                       at 2 time points. The variable pid is a unique patient identifier.
+- Time zero :: Date of a screening visit at diabetes center
+- Outcome :: Cardiovascular disease within 5 years of time 0. The is coded
+             as 0 for no, 1 for yes, in the variable cvd_5year
+- Predictors :: all measured at or before time 0
+  + =age=: Age in years at the time 0
+  + =sex_male=: Binary indicator of male sex (0 = female, 1 = male)
+  + =diabetes_duration=: Time in years since diagnosis of type 1 diabetes
+  + =smoking=: Binary indicator of current smoking status (0 = nonsmoker, 1 = smoker)
+  + =motion=: Binary indicator of regular physical activity (0 = sedentary, 1 = some moderate physical activity)
+  +  =HBA1C_time1=, =HBA1C_time2=: Glycated hemoglobin, also called hemoglobin A1C value at two time points in mmol/mol. Smaller
+    values indicate better glycemic control.
+  + =urine_albumin_time1=, =urine_albumin_time2=: The urine albumin to creatinine ratio, in mg/g. A larger relative
+    concentration of albumin in the urine is an indicator of poor kidney function
+  + =LDL_time1=, =LDL_time2=: Low-density lipoprotein measurement in serum, in mmol/L.
+  + =SBP_time1=, =SBP_time2=: Systolic blood pressure in mmHg
+  + =eGFR_time1=, =eGFR_time2=: Estimated glomerular filtration rate, in $mL/min/1.73m^2$. An estimate of kidney function, larger
+    values means better kidney function
+  + =statin=: indicator of statin use between times 1 and 2 (0 = not on statins, 1 = on statins)
+
+** Perform the following steps in R:
+
+0. [@0] Load R-package =riskRegression=
+
+#+BEGIN_SRC R  :results output :exports (exercise-with-code)  :session *R* :cache yes  :eval (never-plain-export)
+library(riskRegression)
+#+END_SRC
+
+1. [@1] Read the train and the test data into R
+
+#+BEGIN_SRC R  :results output :exports (exercise-with-code)  :session *R* :cache yes  :eval (never-plain-export)
+train <- fread("https://raw.githubusercontent.com/sachsmc/causal-prediction-workshop/refs/heads/master/practicals/data/type1-diabetes-train.csv")
+test <- fread("https://raw.githubusercontent.com/sachsmc/causal-prediction-workshop/refs/heads/master/practicals/data/type1-diabetes-test.csv")
+#+END_SRC
+
+2. [@2] What is the prevalence of CVD 5 years after time zero?
+
+#+BEGIN_SRC R  :results output :exports (exercise-with-code)  :session *R* :cache yes  :eval (never-plain-export)
+100*mean(train$cvd_5year)
+#+END_SRC
+
+3. [@3] Note that the null model ignores the covariates and predicts the same risk to
+   everyone. It can be obtained with the =glm= function as follows:
+
+#+BEGIN_SRC R  :results output :exports (exercise-with-code)  :session *R* :cache yes  :eval (never-plain-export)
+null_model <- glm(cvd_5year~1,data = train, family = "binomial")
+predictRisk(null_model,newdata = test)
+#+END_SRC
+
+4. [@4] Fit a bench mark model using logistic regression including additive
+   effects of sex, age and diabetes duration
+
+#+BEGIN_SRC R  :results output :exports (exercise-with-code)  :session *R* :cache yes  :eval (never-plain-export)
+bench_model <- glm(cvd_5year~sex_male + age + diabetes_duration,data = train, family = "binomial")
+#+END_SRC   
+
+5. [@5] Fit a model which resembles the formula of the Steno 1 risk engine using logistic regression
+
+#+BEGIN_SRC R  :results output :exports (exercise-with-code)  :session *R* :cache yes  :eval (never-plain-export)
+steno_model <- glm(cvd_5year~sex_male + age + diabetes_duration + smoking + motion +
+                  HBA1C_time1 + urine_albumin_time1 + LDL_time1 + SBP_time1 + eGFR_time1,
+                  data = train, family = "binomial")
+#+END_SRC   
+
+6. [@6] Does the Steno model outperform the benchmark model in the train data? Use 10-fold cross-validation.
+
+#+BEGIN_SRC R  :results output :exports (exercise-with-code)  :session *R* :cache yes  :eval (never-plain-export)
+x <- riskRegression::Score(list("Benchmark model" = bench_model,
+                                "Steno model" = steno_model),
+                           data = train,
+                           seed = 8,
+                           null.model = TRUE,
+                           formula = cvd_5year~1,
+                           split.method = "cv10",
+                           summary = "risk",
+                           plots = c("roc","cal"))
+summary(x)
+plotRisk(x)
+plotROC(x)
+plotCalibration(x)
+#+END_SRC
+
+7. [@7] Does the Steno model outperform the benchmark model in the test data? 
+
+#+BEGIN_SRC R  :results output :exports (exercise-with-code)  :session *R* :cache yes  :eval (never-plain-export)
+y <- riskRegression::Score(list("Benchmark model" = bench_model,
+                                "Steno model" = steno_model),
+                           data = test,
+                           null.model = TRUE,
+                           formula = cvd_5year~1,
+                           summary = "risk",
+                           plots = c("roc","cal"))
+summary(y)
+plotRisk(y)
+plotROC(y)
+plotCalibration(y)
+#+END_SRC   
+
+8. [@8] Use any method to make a new risk prediction model and compare it
+   to the Steno model on the test data. Note that the =riskRegression::Score= function
+   allows you to specify a vector with predicted risks. Here is an
+   example using random forests based on the R-package ranger.
+
+#+BEGIN_SRC R  :results output :exports (exercise-with-code)  :session *R* :cache yes  :eval (never-plain-export)
+library(ranger)
+rf <- ranger(cvd_5year~sex_male + age + diabetes_duration,data = train,
+             probability = TRUE,seed = 9)
+pred_ranger <- predict(rf,data = test)$predictions[,2]
+z <- riskRegression::Score(list("Benchmark model" = bench_model,
+                                "Steno model" = steno_model,
+                                "Random forest" = pred_ranger),
+                           data = test,
+                           null.model = TRUE,
+                           formula = cvd_5year~1,
+                           summary = "risk",
+                           plots = c("roc","cal"))
+summary(z)
+plotRisk(z)
+plotROC(z)
+plotCalibration(z)
+#+END_SRC      
+   

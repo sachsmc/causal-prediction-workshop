@@ -3,3 +3,26 @@
 *.Rproj
 
 /.quarto/
+
+### TeX ###
+## Core latex/pdflatex auxiliary files:
+.*.synctex.gz
+*.el
+*.synctex.gz
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+*.vrb
+*.nav
+*.md
+*.snm
+*.fdb_latexmk
