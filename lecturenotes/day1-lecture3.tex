@@ -1,4 +1,4 @@
-% Created 2025-08-25 Mon 17:33
+% Created 2025-08-29 fre 13:10
 % Intended LaTeX compiler: pdflatex
 \documentclass{beamer}\usepackage{listings}
 \usepackage{color}
@@ -73,9 +73,9 @@ basewidth={0.5em,0.4em},
 
 \maketitle
 \section{Modeling}
-\label{sec:orge8f0ab9}
+\label{sec:orgd2a1be2}
 
-\begin{frame}[label={sec:orgebec7b2}]{Outline}
+\begin{frame}[label={sec:org433c3e6}]{Outline}
 Advanced statistical topics arise routinely in the prediction
 modeling process and require special attention.
 \vfill
@@ -91,42 +91,42 @@ motivate the target of a sensitivity analysis.
 Cross-validation, Censored outcome, Missing predictor values
 \end{frame}
 \setbeamercolor{background canvas}{bg=black}
-\begin{frame}[label={sec:org4086a70}]{}
+\begin{frame}[label={sec:org00c63f1}]{}
 \huge \color{white}
 Cross-validation
 \end{frame}
 \setbeamercolor{background canvas}{bg=white}
-\begin{frame}[label={sec:org8bf1545}]{Data splitting}
+\begin{frame}[label={sec:org04c91c0}]{Data splitting}
 Internal cross-validation can be used to tune model parameters and to
 assess and compare the predictive performance of a list of candidate
-models.
+models (AKA super learner).
 
-\vfill The term ``internal'' can either refer to the fact that the
+\vfill ``Internal'' can either mean that the
 ``validation'' study is performed by the same team who made the model,
-or it can refer to the fact that the ``validation'' study splits a
-purpose data into training and validation sets \vfill
+or characterize a ``validation'' study which splits a
+purpose data into training and validation sets. \vfill
 
 We generally \alert{discourage} the use of a \alert{single split} of data into one set
 for training and one for validation.
 \end{frame}
-\begin{frame}[label={sec:orgd4bedad}]{Data splitting}
+\begin{frame}[label={sec:orge9fb54d}]{Data splitting}
 \begin{center}
 \includegraphics[width=.9\linewidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-7.1.pdf}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:orgf9a7ba8}]{Data splitting}
+\begin{frame}[label={sec:org689d3b6}]{Data splitting}
 \begin{center}
 \includegraphics[width=.9\linewidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-7.3.pdf}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:org11a0a92}]{Learning curve}
+\begin{frame}[label={sec:orge84b5be}]{Learning curve}
 \vspace{-3em}
 
 \begin{center}
 \includegraphics[width=.9\linewidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-7-learning-curve.pdf}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:org208a389},fragile]{Example: single split results depend on seed}
+\begin{frame}[label={sec:orgd7e5720},fragile]{Example: single split results depend on seed}
  \begin{lstlisting}[language=r,numbers=none,otherkeywords={seed,train,method,B,M}, deletekeywords={model,family,se,null,data,formula}]
 x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
            data = train,
@@ -151,26 +151,37 @@ Key: <Model>
 2: Experimental model    90.3       5.9
 \end{verbatim}
 \end{frame}
-\begin{frame}[label={sec:orgdd6680a},fragile]{Example: single split results depend on seed}
+\begin{frame}[label={sec:orge1c7927},fragile]{Example: single split results depend on seed}
  \begin{lstlisting}[language=r,numbers=none,otherkeywords={seed,train,method,B,M}, deletekeywords={model,family,se,null,data,formula}]
 x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
            data = train,
            formula = cvd_5year~1,
+           split.method = "bootcv",
            progress.bar = NULL, verbose = FALSE,
            null.model = FALSE, se = FALSE,
-           split.method = "bootcv",
            seed = 4,
            B = 1,
            M = .632*NROW(train))
 summary(x,what = "score")
 \end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+$score
+Key: <Model>
+                Model AUC (%) Brier (%)
+               <fctr>  <char>    <char>
+1: Conventional model    93.5       5.7
+2: Experimental model    93.6       5.6
+\end{verbatim}
 \end{frame}
-\begin{frame}[label={sec:org2f088c1},shrink=25]{Repeated cross-validation helps (but changes the target!)}
+\begin{frame}[label={sec:org6c2ffe0},shrink=25]{Repeated cross-validation helps (but changes the target!)}
 \begin{center}
 \includegraphics[width=.9\linewidth]{/home/tag/research/Methods/PredictionModelsMonograph/figure-7.88-colour.jpg}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:org7716257},fragile]{Repeated cross-validation helps (but changes the target!)}
+\begin{frame}[label={sec:org1d0a7c2},fragile]{Repeated cross-validation helps (but changes the target!)}
  \begin{lstlisting}[language=r,numbers=none,otherkeywords={seed,train,method,B,M}, deletekeywords={model,family,se,null,data,formula}]
 x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
            data = train,
@@ -195,7 +206,7 @@ Key: <Model>
 2: Experimental model   90.62      5.11
 \end{verbatim}
 \end{frame}
-\begin{frame}[label={sec:org211b5d8},fragile]{Repeated cross-validation helps (but changes the target!)}
+\begin{frame}[label={sec:org640853a},fragile]{Repeated cross-validation helps (but changes the target!)}
  \begin{lstlisting}[language=r,numbers=none,otherkeywords={seed,train,method,B,M}, deletekeywords={model,family,se,null,data,formula}]
 x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
            data = train,
@@ -220,13 +231,43 @@ Key: <Model>
 2: Experimental model   90.60      5.11
 \end{verbatim}
 \end{frame}
+\begin{frame}[label={sec:orgaee921a}]{Conditional versus expected performance}
+Conditional prediction performance is the performance of a risk
+prediction model conditional on a single-purpose dataset. 
+\vfill
+
+A researcher who provides a risk prediction model for clinical
+application is naturally interested in the conditional performance of
+the model.
+\vfill
+
+The conditional prediction performance can be assessed by
+an external validation dataset or, with some limitations, using data
+splitting.  
+\end{frame}
+\begin{frame}[label={sec:orgad18fbd}]{Conditional versus expected performance}
+Expected prediction performance is the performance
+of a modeling algorithm.
+It is the average performance across all the
+prediction models that a modeling algorithm can produce using all
+possible learning datasets of a fixed sample size.
+\vfill
+A researcher who
+has invented a new algorithm for building prediction models is
+naturally interested in the average performance.
+
+\vfill
+The expected
+prediction performance can either be assessed by computer simulation
+of many datasets or by using cross-validation and bootstrap methods.
+\end{frame}
 \setbeamercolor{background canvas}{bg=black}
-\begin{frame}[label={sec:org3e741de}]{}
+\begin{frame}[label={sec:org106e403}]{}
 \huge \color{white}
 Censored time to event data
 \end{frame}
 \setbeamercolor{background canvas}{bg=white}
-\begin{frame}[label={sec:org0c59a7c}]{Censored data}
+\begin{frame}[label={sec:org5ac291f}]{Censored data}
 A common behavior is that patients with short follow-up are excluded
 from the dataset. This is almost never the right thing to do, as
 intuitive as it may seem. Excluding them results in bias.
@@ -243,7 +284,7 @@ Subjects who die for other reasons before the time horizon are not censored!
 Specific estimation techniques are needed to take care of bias due to
 censored data.
 \end{frame}
-\begin{frame}[label={sec:org2acabac},shrink=25]{}
+\begin{frame}[label={sec:orge4ee255},shrink=25]{}
 \begin{center}
 \includegraphics[width=.9\linewidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-2-time2event-data.pdf}
 \end{center}
@@ -251,13 +292,13 @@ censored data.
 At the 5-year prediction time horizon, only patient 5 is censored. At
 the 10-year prediction time horizon, patients 5 and 6 are censored.
 \end{frame}
-\begin{frame}[label={sec:orgd72a7f1}]{Inverse probability of censoring weighting}
+\begin{frame}[label={sec:orgb4879aa}]{Inverse probability of censoring weighting}
 To estimate the average Brier score we calculate a weighted average
 for only those subjects for who the event status
 at the prediction time horizon is known (groups \emph{event} and
 \emph{event-free}).
 
-\vfill The weight of a subject is higher the more (similar) subjects
+\vfill The weight of a subject is higher the more similar subjects
 were lost to follow-up (\emph{censored}) earlier in time.
 
 \vfill This is to account for the fact that those in the \emph{censored}
@@ -269,7 +310,7 @@ Subjects in the \emph{censored} group are not directly used in
 the weighted average. However, they enter indirectly through the
 weights assigned to other subjects.  
 \end{frame}
-\begin{frame}[label={sec:orgad11501}]{Choice of the prediction time horizon}
+\begin{frame}[label={sec:org8f3b798}]{Choice of the prediction time horizon}
 The prediction time horizon should be chosen such that it is of
 subject matter interest to predict the probability that the event
 occurs in the time period between the time origin and the prediction
@@ -284,7 +325,7 @@ It is sometimes useful to study multiple
 prediction time horizons, but this should be motivated by the
 application at hand (beware of cherry-picking).
 \end{frame}
-\begin{frame}[label={sec:orgab6cb05},fragile]{Example code (does not work with course data)}
+\begin{frame}[label={sec:org6383628},fragile]{Example code (does not work with course data)}
  \begin{lstlisting}[language=r,numbers=none,otherkeywords={formula,times,event,Hist}, deletekeywords={model,data,NROW,split,null}]
 x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
            data = train,
@@ -295,14 +336,20 @@ x <- Score(list("Conventional model" = conventional_model,"Experimental model" =
            B = 100,
            M = .632*NROW(train))
 \end{lstlisting}
+\vfill\pause
+
+The inverse probability of censoring weights are obtained with
+a regression model for the censoring probabilites based on the
+variables on the right hand side of the formula. Unfortunately,
+the censoring regression model can be misspecified \dots{}
 \end{frame}
 \setbeamercolor{background canvas}{bg=black}
-\begin{frame}[label={sec:org9d8d1d7}]{}
+\begin{frame}[label={sec:org63aafe4}]{}
 \huge \color{white}
 Missing predictor values
 \end{frame}
 \setbeamercolor{background canvas}{bg=white}
-\begin{frame}[label={sec:org513932a}]{Missing predictor values}
+\begin{frame}[label={sec:orgddd4a91}]{Missing predictor values}
 When the target of the analysis is an association parameter such as an
 odds ratio or a hazard ratio, then \emph{multiple imputation} or \emph{inverse
 probability weighting} may increase power compared to a \emph{complete case
@@ -319,7 +366,7 @@ deal with missing values in two conceptually different places:
 \item missing values in data of a new patient who is asking for a predicted risk
 \end{itemize}
 \end{frame}
-\begin{frame}[label={sec:orgfdca57a}]{Reason for missing predictor values}
+\begin{frame}[label={sec:orgb0a4176}]{Reason for missing predictor values}
 We need to understand \alert{why} the values are missing and explore the reasons.
 
 \begin{center}
@@ -337,7 +384,7 @@ We need to understand \alert{why} the values are missing and explore the reasons
 An inconvenient truth to realize is that the type of missingness can
 generally not be inferred from the data. 
 \end{frame}
-\begin{frame}[label={sec:org8e5d03e}]{Learning phase (Making of a prediction model)}
+\begin{frame}[label={sec:orgfec658b}]{Learning phase (Making of a prediction model)}
 Missing values in the predictor variables affect the choice of
 predictor variables: having few predictor variables with a high percentage of
 missingness can be equally bad as having many predictor variables with few missing values in different subjects.
@@ -354,7 +401,7 @@ example, to impute a value for BMI we could specify a linear
 regression model which relates BMI to the other predictor variables,
 other auxiliary variables, and the outcome.
 \end{frame}
-\begin{frame}[label={sec:orgf8d11ec}]{Imputation algorithms should also condition on outcome}
+\begin{frame}[label={sec:org73a84a1}]{Imputation algorithms should also condition on outcome}
 Thinking about how missingness can possibly depend on an outcome
 variable is generally cumbersome, and it does not get any easier
 when the outcome is a right-censored time-to-event variable.
@@ -370,14 +417,14 @@ variable conditional on the observed predictor variables, this must
 mean that there exists an unobserved variable, such as disease burdon,
 which mediates the relationship.
 \end{frame}
-\begin{frame}[label={sec:orgf423c20},shrink=25]{}
+\begin{frame}[label={sec:org4d28b2f},shrink=25]{}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-7.35.pdf}
 \caption{Suppose the substantive model is a Cox regression model which shows that the 5-year survival probability increases with increasing BMI. Without conditioning on the outcome, we simply impute missing BMI values for every one from a normal distribution with mean given by the mean BMI in the complete cases. When the 5-year survival probability is an increasing function of BMI as in the figure this imputed value (the black dot on the line) is systematically too large for subjects with BMI below 25 and systematically too low for subjects with BMI above 25.}
 \end{figure}
 \end{frame}
-\begin{frame}[label={sec:orgcb84473}]{Missing values in the validation data}
+\begin{frame}[label={sec:orgff7a3d2}]{Missing values in the validation data}
 We distinguish the following two tasks.
 \vfill
 The first task is

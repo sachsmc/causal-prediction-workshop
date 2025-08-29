@@ -1,4 +1,4 @@
-% Created 2025-08-25 Mon 15:59
+% Created 2025-08-29 fre 13:14
 % Intended LaTeX compiler: pdflatex
 \documentclass{beamer}\usepackage{listings}
 \usepackage{color}
@@ -74,9 +74,9 @@ basewidth={0.5em,0.4em},
 
 \maketitle
 \section{Intro}
-\label{sec:org45d25c5}
+\label{sec:org2455e19}
 
-\begin{frame}[label={sec:orgc97b14e}]{Outline \footnote{Medical risk prediction models: with ties to machine learning. Chapman and Hall/CRC, 2021.}}
+\begin{frame}[label={sec:org20d5415}]{Outline \footnote{Medical risk prediction models: with ties to machine learning. Chapman and Hall/CRC, 2021.}}
 \begin{itemize}
 \item Why should I care about statistical prediction models?
 \item I am going to make a prediction model. What do I need to know?
@@ -88,7 +88,7 @@ basewidth={0.5em,0.4em},
 \item Can't the computer just take care of all of this?
 \end{itemize}
 \end{frame}
-\begin{frame}[label={sec:org48a73c1}]{Right on}
+\begin{frame}[label={sec:org3bfa255}]{Right on}
 \emph{The only useful function of a statistician is to make predictions, and thus to provide a basis for action} -- W. Edwards
 Deming \vfill
 
@@ -96,22 +96,22 @@ There are many ways to make a model, and every modeling expert has
 preferences regarding the general approach and tuning.
 \vfill
 \end{frame}
-\begin{frame}[label={sec:orge53b543}]{}
+\begin{frame}[label={sec:org374be89}]{}
 \begin{center}
 \includegraphics[width=.9\linewidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-2-predictionmodeltimeline.pdf}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:org3255b92}]{}
+\begin{frame}[label={sec:org2130299}]{}
 \begin{center}
 \includegraphics[width=.9\linewidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-2-blackbox-strategy.pdf}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:org970b1b7}]{}
+\begin{frame}[label={sec:org825ae0f}]{}
 \begin{center}
 \includegraphics[width=.9\linewidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/figure-2-blackbox-model.pdf}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:orga9ca393}]{Notation}
+\begin{frame}[label={sec:org51ac803}]{Notation}
 \begin{description}
 \item[{Outcome}] $$Y(t)= \begin{cases}
       0 & \text{event-free or competing risk}\\
@@ -127,7 +127,7 @@ preferences regarding the general approach and tuning.
 \text{Example: logistic regression} & \qquad\qquad \hat M_n(X) = \operatorname{expit}(\hat\alpha_n + \hat\beta_n X)
 \end{align*}
 \end{frame}
-\begin{frame}[label={sec:orge8607f2}]{Measuring prediction performance}
+\begin{frame}[label={sec:org934dadd}]{Measuring prediction performance \footnote{The probability and expectation are taken with respect to \(i,j\) not \(D_n\)}}
 \begin{block}{Calibration:}
 \begin{equation*}
 p\mapsto P\{Y_i(t)=1| \hat M_n(X_i)=p\}
@@ -144,7 +144,7 @@ p\mapsto P\{Y_i(t)=1| \hat M_n(X_i)=p\}
 \end{equation*}
 \end{block}
 \end{frame}
-\begin{frame}[label={sec:org1bfa652}]{}
+\begin{frame}[label={sec:orga870afd}]{}
 Interpretation of a prediction performance measure should always
 involve a benchmark, ideally that set by a rival prediction model.
 \vfill
@@ -154,18 +154,18 @@ involve a benchmark, ideally that set by a rival prediction model.
 \label{fig:1}
 \end{center}
 
-In a homogeneous population, even the perfect model can have low
+In a homogeneous population, even the best possible model can have low
 discrimination ability (AUC/AUCROC). In a heterogeneous population, even a
 bad model can have a high AUC.
 \end{frame}
-\begin{frame}[label={sec:orge1893b0}]{Rare biomarkers \ldots{}}
+\begin{frame}[label={sec:org2b8844c}]{Don't blame the metric}
 \begin{center}
 \includegraphics[width=1.0\textwidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/fig-2-newmarker.pdf}
 \end{center}
 
-\ldots{} do not show change overall predictive performance 
+Rare biomarkers do not show change \alert{overall} predictive performance 
 \end{frame}
-\begin{frame}[label={sec:org3d0861c}]{}
+\begin{frame}[label={sec:org93c0dd7}]{}
 Benchmark values for the AUC (concordance index) and Brier score at any fixed prediction time horizon t.
 
 \begin{center}
@@ -183,14 +183,19 @@ Being a rank statistic, the AUC is blind to
 miscalibration of the predicted risks.
 Hence, it cannot stand alone to assess models with respect to predictive accuracy.
 \end{frame}
-\begin{frame}[label={sec:org4a18f1b}]{Benchmark: the null model ignores the predictor variables}
+\begin{frame}[label={sec:orgd5c5a78}]{Benchmark: the null model ignores the predictor variables}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{figure-5-theoretical-brier-score.pdf}
 \end{center}
 
 A good model outperforms the null model.
 \end{frame}
-\begin{frame}[label={sec:org5611efe},fragile,shrink=25]{Example}
+\begin{frame}[label={sec:org4f48961}]{Steno type 1 diabetes risk engine}
+\begin{center}
+\includegraphics[width=1.3\textwidth]{/home/tag/metropolis/Teaching/causal-prediction-workshop/lecturenotes/steno-t1-riskengine.png}
+\end{center} 
+\end{frame}
+\begin{frame}[label={sec:orgf05d4f4},fragile,shrink=25]{Example}
  \begin{lstlisting}[language=r,numbers=none,otherkeywords={}, deletekeywords={}]
 library(riskRegression)
 train <- readRDS("./practicals/data/type1-diabetes-train.rds")
@@ -217,7 +222,7 @@ head(train)
 6     98.40765      0       68.75695             230.856313     1.389660    124.03086      69.00498         0
 \end{verbatim}
 \end{frame}
-\begin{frame}[label={sec:orgfd9b974},fragile]{Conventional model and experimental model}
+\begin{frame}[label={sec:orgf094b28},fragile]{Conventional model and experimental model}
  \begin{lstlisting}[language=r,numbers=none,otherkeywords={}, deletekeywords={model}]
 # Logistic regression similar to Steno 1 risk engine formula
 conventional_model <- glm(cvd_5year~sex_male + age + diabetes_duration + smoking + motion + HBA1C_post_trt + urine_albumin_post_trt + LDL_post_trt + SBP_post_trt + eGFR_post_trt,
@@ -227,8 +232,8 @@ experimental_model <- glm(cvd_5year~sex_male *SBP_post_trt + age + I(age>40) * e
              data = train, family = "binomial")
 \end{lstlisting}
 \end{frame}
-\begin{frame}[label={sec:orgd092c99},fragile]{Predicted risks for a single subject}
- \begin{lstlisting}[language=r,numbers=none,otherkeywords={}, deletekeywords={model}]
+\begin{frame}[label={sec:orgb4471d5},fragile]{Predicted risks for a single subject}
+ \begin{lstlisting}[language=r,numbers=none,otherkeywords={}, deletekeywords={model,c}]
 data.frame("subject id" = c(24,24),
            "model" = c("conventional","experimental"),
            "risk prediction" = c(predictRisk(conventional_model,newdata = test[24,]),
@@ -243,7 +248,7 @@ data.frame("subject id" = c(24,24),
 2         24 experimental       0.4429426
 \end{verbatim}
 \end{frame}
-\begin{frame}[label={sec:orgbdb2aaa},fragile]{Evaluating model performance}
+\begin{frame}[label={sec:org17552be},fragile]{Evaluating model performance}
  \begin{lstlisting}[language=r,numbers=none,otherkeywords={}, deletekeywords={model,c}]
 x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
            data = test,
@@ -265,7 +270,7 @@ Key: <Model>
 3: Experimental model 87.8 [84.1;91.5] 4.9 [4.0;5.8]
 \end{verbatim}
 \end{frame}
-\begin{frame}[label={sec:orgf1b068e},fragile]{Predicted risks}
+\begin{frame}[label={sec:org1df666c},fragile]{Predicted risks}
  \begin{lstlisting}[language=r,numbers=none]
 plotRisk(x)
 \end{lstlisting}
@@ -274,7 +279,7 @@ plotRisk(x)
 \includegraphics[width=0.7\textwidth]{./day1-lecture2-example-predicted-risks.pdf}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:orgeba4739},fragile]{Discrimination}
+\begin{frame}[label={sec:orge1d57e3},fragile]{Discrimination}
  \begin{lstlisting}[language=r,numbers=none]
 plotROC(x)
 \end{lstlisting}
@@ -283,7 +288,7 @@ plotROC(x)
 \includegraphics[width=0.7\textwidth]{./day1-lecture2-example-roc.pdf}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:orgcb9ee49},fragile]{Calibration}
+\begin{frame}[label={sec:orgbb1a64a},fragile]{Calibration}
  \begin{lstlisting}[language=r,numbers=none]
 plotCalibration(x)
 \end{lstlisting}
@@ -292,49 +297,23 @@ plotCalibration(x)
 \includegraphics[width=0.7\textwidth]{./day1-lecture2-example-cal.pdf}
 \end{center}
 \end{frame}
-\begin{frame}[label={sec:org4918c5e}]{Conditional versus expected performance}
-Conditional prediction performance is the performance of a risk
-prediction model conditional on a single-purpose dataset. 
+\begin{frame}[label={sec:orga007d78}]{Uncertainty}
+A medical risk prediction model finds people in the data set who were
+alike the current person, i.e., with similar values of the risk
+predictors, and summarizes what happened to them as a probability:
 \vfill
 
-A researcher who provides a risk prediction model for clinical
-application is naturally interested in the conditional performance of
-the model.
+\emph{Dear patient, if we had 100 patients exactly like you we would expect 17 to experience the event within the next 5 years}.
 \vfill
 
-The conditional prediction performance can be assessed by
-an external validation dataset or, with some limitations, using data
-splitting.  
-\end{frame}
-\begin{frame}[label={sec:org39bf25c}]{Conditional versus expected performance}
-Expected prediction performance is the performance
-of a modeling algorithm.
-It is the average performance across all the
-prediction models that a modeling algorithm can produce using all
-possible learning datasets of a fixed sample size.
-\vfill
-A researcher who
-has invented a new algorithm for building prediction models is
-naturally interested in the average performance.
-
-\vfill
-The expected
-prediction performance can either be assessed by computer simulation
-of many datasets or by using cross-validation and bootstrap methods.
-\end{frame}
-\begin{frame}[label={sec:org458e612}]{Uncertainty}
 A probabilistic prediction has built-in uncertainty
 \vfill
 
-Paradigm: A medical risk prediction model finds people in the data set
-who were alike the current person, i.e., with similar values of the
-risk predictors, and summarizes what happened to them.  \vfill
-
-Any useful model will provide more reliable predictions for people who
-are well represented in the data set than people at the border of
-the data set.
+But, we expect more reliable predictions for people who
+are well represented in the data set than people at the border of the
+data set.
 \end{frame}
-\begin{frame}[label={sec:orga350973}]{Summary and outlook}
+\begin{frame}[label={sec:org34bf30b}]{Summary and outlook}
 A medical risk prediction model predicts the probability with which an
 event occurs until a fixed prediction time horizon.
 \vfill
@@ -344,7 +323,7 @@ Prediction performance (metrics) can be used to decide between rival models.
 \vfill
 
 The values of the prediction performance metrics do not have a direct
-clinical interpretation!
+clinical interpretation! 
 
 \vfill How useful a model is depends on what it is used for \dots{}
 \end{frame}

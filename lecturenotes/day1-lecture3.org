@@ -45,12 +45,12 @@ Cross-validation
 
 Internal cross-validation can be used to tune model parameters and to
 assess and compare the predictive performance of a list of candidate
-models.
+models (AKA super learner).
 
-\vfill The term ``internal'' can either refer to the fact that the
+\vfill ``Internal'' can either mean that the
 ``validation'' study is performed by the same team who made the model,
-or it can refer to the fact that the ``validation'' study splits a
-purpose data into training and validation sets \vfill
+or characterize a ``validation'' study which splits a
+purpose data into training and validation sets. \vfill
 
 We generally *discourage* the use of a *single split* of data into one set
 for training and one for validation.
@@ -74,8 +74,9 @@ for training and one for validation.
 
 #+name: table1
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output raw  :exports none  :session *R* :cache no  :eval always
+#+BEGIN_SRC R  :results output raw  :exports none  :session *R* :cache no  
 library(riskRegression)
+setwd("~/metropolis/Teaching/causal-prediction-workshop/")
 train <- readRDS("./practicals/data/type1-diabetes-train.rds")
 conventional_model <- glm(cvd_5year~sex_male + age + diabetes_duration + smoking + motion + HBA1C_post_trt + urine_albumin_post_trt + LDL_post_trt + SBP_post_trt + eGFR_post_trt,
                           data = train, family = "binomial")
@@ -97,7 +98,7 @@ x <- Score(list("Conventional model" = conventional_model,"Experimental model" =
 summary(x,what = "score")
 #+END_SRC
 
-#+RESULTS[(2025-08-25 16:14:36) 31e661f2fdfa7d2a8f5bd02ebc587c770d51fbff]:
+#+RESULTS[(2025-08-29 13:01:22) 7edf637e4aed9ece66089cedaec8a02ab1e693d7]:
 : $score
 : Key: <Model>
 :                 Model AUC (%) Brier (%)
@@ -113,14 +114,22 @@ summary(x,what = "score")
 x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
            data = train,
            formula = cvd_5year~1,
+           split.method = "bootcv",
            progress.bar = NULL, verbose = FALSE,
            null.model = FALSE, se = FALSE,
-           split.method = "bootcv",
            seed = 4,
            B = 1,
            M = .632*NROW(train))
 summary(x,what = "score")
 #+END_SRC
+
+#+RESULTS[(2025-08-29 13:02:42) 31b55d399f2cd630c4ba862f4c499d9752cbbf78]:
+: $score
+: Key: <Model>
+:                 Model AUC (%) Brier (%)
+:                <fctr>  <char>    <char>
+: 1: Conventional model    93.5       5.7
+: 2: Experimental model    93.6       5.6
 
 *** Repeated cross-validation helps (but changes the target!)
 :PROPERTIES:
@@ -177,6 +186,41 @@ summary(x,what = "score",digits = 2)
 : 1: Conventional model   90.88      4.98
 : 2: Experimental model   90.60      5.11
 
+
+
+*** Conditional versus expected performance
+
+Conditional prediction performance is the performance of a risk
+prediction model conditional on a single-purpose dataset. 
+\vfill
+
+A researcher who provides a risk prediction model for clinical
+application is naturally interested in the conditional performance of
+the model.
+\vfill
+
+The conditional prediction performance can be assessed by
+an external validation dataset or, with some limitations, using data
+splitting.  
+
+*** Conditional versus expected performance
+
+Expected prediction performance is the performance
+of a modeling algorithm.
+It is the average performance across all the
+prediction models that a modeling algorithm can produce using all
+possible learning datasets of a fixed sample size.
+\vfill
+A researcher who
+has invented a new algorithm for building prediction models is
+naturally interested in the average performance.
+
+\vfill
+The expected
+prediction performance can either be assessed by computer simulation
+of many datasets or by using cross-validation and bootstrap methods.
+
+
 *** bla
 :PROPERTIES:
 :BEAMER_env: ignoreheading
@@ -229,7 +273,7 @@ for only those subjects for who the event status
 at the prediction time horizon is known (groups /event/ and
 /event-free/).
 
-\vfill The weight of a subject is higher the more (similar) subjects
+\vfill The weight of a subject is higher the more similar subjects
 were lost to follow-up (/censored/) earlier in time.
 
 \vfill This is to account for the fact that those in the /censored/
@@ -270,6 +314,12 @@ x <- Score(list("Conventional model" = conventional_model,"Experimental model" =
            B = 100,
            M = .632*NROW(train))
 #+END_SRC
+\vfill\pause
+
+The inverse probability of censoring weights are obtained with
+a regression model for the censoring probabilites based on the
+variables on the right hand side of the formula. Unfortunately,
+the censoring regression model can be misspecified \dots
 
 *** bla
 :PROPERTIES:

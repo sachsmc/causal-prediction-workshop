@@ -58,7 +58,7 @@ preferences regarding the general approach and tuning.
 \end{align*}
 #+end_export
 
-*** Measuring prediction performance
+*** Measuring prediction performance [fn:8]
 
 **** Calibration:
 \begin{equation*}
@@ -76,6 +76,8 @@ p\mapsto P\{Y_i(t)=1| \hat M_n(X_i)=p\}
   \operatorname{Brier\ score}(t) = \operatorname{E}\left\{Y_i(t)-\hat M_n(X_i)\right\}^2
 \end{equation*}
 
+[fn:8] The probability and expectation are taken with respect to \(i,j\) not \(D_n\)
+
 *** 
 
 Interpretation of a prediction performance measure should always
@@ -86,15 +88,15 @@ involve a benchmark, ideally that set by a rival prediction model.
 #+ATTR_LATEX: :width 0.7\textwidth
   [[~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/fig-5-auroc-thresholds.png]]
 
-In a homogeneous population, even the perfect model can have low
+In a homogeneous population, even the best possible model can have low
 discrimination ability (AUC/AUCROC). In a heterogeneous population, even a
 bad model can have a high AUC.
 
-*** Rare biomarkers ... 
+*** Don't blame the metric
 #+ATTR_LATEX: :width 1.0\textwidth
   [[~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/fig-2-newmarker.pdf]]
 
-... do not show change overall predictive performance 
+Rare biomarkers do not show change *overall* predictive performance 
 
 *** 
 
@@ -119,14 +121,17 @@ Hence, it cannot stand alone to assess models with respect to predictive accurac
 
 A good model outperforms the null model.
 
- 
+*** Steno type 1 diabetes risk engine
+#+ATTR_LATEX: :width 1.3\textwidth
+  [[~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/steno-t1-riskengine.png]] 
+
 *** Example
 :PROPERTIES:
 :BEAMER_opt: shrink=25
 :END:
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output example  :exports both  :session *R* :cache yes  
+#+BEGIN_SRC R  :results output example  :exports both  :session *R* :cache yes 
 library(riskRegression)
 train <- readRDS("./practicals/data/type1-diabetes-train.rds")
 test <- readRDS("./practicals/data/type1-diabetes-test.rds")
@@ -154,7 +159,7 @@ head(train)
 *** Conventional model and experimental model
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={model}
-#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes  :eval (never-plain-export)
+#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes
 # Logistic regression similar to Steno 1 risk engine formula
 conventional_model <- glm(cvd_5year~sex_male + age + diabetes_duration + smoking + motion + HBA1C_post_trt + urine_albumin_post_trt + LDL_post_trt + SBP_post_trt + eGFR_post_trt,
              data = train, family = "binomial")
@@ -165,8 +170,8 @@ experimental_model <- glm(cvd_5year~sex_male *SBP_post_trt + age + I(age>40) * e
 
 *** Predicted risks for a single subject
 
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={model}
-#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  :eval (never-plain-export)
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={model,c}
+#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes   
 data.frame("subject id" = c(24,24),
            "model" = c("conventional","experimental"),
            "risk prediction" = c(predictRisk(conventional_model,newdata = test[24,]),
@@ -181,7 +186,7 @@ data.frame("subject id" = c(24,24),
 *** Evaluating model performance 
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={model,c}
-#+BEGIN_SRC R  :results output example  :exports both  :session *R* :cache yes  
+#+BEGIN_SRC R  :results output example  :exports both  :session *R* :cache yes   
 x <- Score(list("Conventional model" = conventional_model,"Experimental model" = experimental_model),
            data = test,
            formula = cvd_5year~1,
@@ -202,7 +207,7 @@ summary(x,what = "score")
 
 *** Predicted risks
 
-#+BEGIN_SRC R :results file graphics :file ~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/day1-lecture2-example-predicted-risks.pdf :exports code :session *R* :cache yes
+#+BEGIN_SRC R :results file graphics :file ~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/day1-lecture2-example-predicted-risks.pdf :exports code :session *R* :cache yes 
 plotRisk(x)
 #+END_SRC
 
@@ -214,7 +219,7 @@ plotRisk(x)
 
 *** Discrimination
 
-#+BEGIN_SRC R :results file graphics :file ~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/day1-lecture2-example-roc.pdf :exports code :session *R* :cache yes
+#+BEGIN_SRC R :results file graphics :file ~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/day1-lecture2-example-roc.pdf :exports code :session *R* :cache yes 
 plotROC(x)
 #+END_SRC
 
@@ -226,7 +231,7 @@ plotROC(x)
 
 *** Calibration
 
-#+BEGIN_SRC R :results file graphics :file ~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/day1-lecture2-example-cal.pdf :exports code :session *R* :cache yes
+#+BEGIN_SRC R :results file graphics :file ~/metropolis/Teaching/causal-prediction-workshop/lecturenotes/day1-lecture2-example-cal.pdf :exports code :session *R* :cache yes 
 plotCalibration(x)
 #+END_SRC
 
@@ -237,50 +242,22 @@ plotCalibration(x)
 [[file:./day1-lecture2-example-cal.pdf]]
 
 
-*** Conditional versus expected performance
-
-Conditional prediction performance is the performance of a risk
-prediction model conditional on a single-purpose dataset. 
-\vfill
-
-A researcher who provides a risk prediction model for clinical
-application is naturally interested in the conditional performance of
-the model.
-\vfill
-
-The conditional prediction performance can be assessed by
-an external validation dataset or, with some limitations, using data
-splitting.  
-
-*** Conditional versus expected performance
-
-Expected prediction performance is the performance
-of a modeling algorithm.
-It is the average performance across all the
-prediction models that a modeling algorithm can produce using all
-possible learning datasets of a fixed sample size.
-\vfill
-A researcher who
-has invented a new algorithm for building prediction models is
-naturally interested in the average performance.
-
-\vfill
-The expected
-prediction performance can either be assessed by computer simulation
-of many datasets or by using cross-validation and bootstrap methods.
-
 *** Uncertainty
+
+A medical risk prediction model finds people in the data set who were
+alike the current person, i.e., with similar values of the risk
+predictors, and summarizes what happened to them as a probability:
+\vfill
+
+/Dear patient, if we had 100 patients exactly like you we would expect 17 to experience the event within the next 5 years/.
+\vfill
 
 A probabilistic prediction has built-in uncertainty
 \vfill
 
-Paradigm: A medical risk prediction model finds people in the data set
-who were alike the current person, i.e., with similar values of the
-risk predictors, and summarizes what happened to them.  \vfill
-
-Any useful model will provide more reliable predictions for people who
-are well represented in the data set than people at the border of
-the data set.
+But, we expect more reliable predictions for people who
+are well represented in the data set than people at the border of the
+data set.
 
 *** Summary and outlook
 
@@ -293,6 +270,6 @@ Prediction performance (metrics) can be used to decide between rival models.
 \vfill
 
 The values of the prediction performance metrics do not have a direct
-clinical interpretation!
+clinical interpretation! 
 
 \vfill How useful a model is depends on what it is used for \dots
